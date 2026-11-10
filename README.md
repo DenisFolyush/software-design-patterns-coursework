@@ -1,2 +1,3 @@
-# software-design-patterns-coursework
-Course project for Software Documentation and Design Patterns. RESTful web application implementing GoF design patterns, UML diagrams, and database integration.
+# hr-management-system
+
+Human Resource Management System (HRMS) — a course project demonstrating REST API development, object-oriented design, and GoF design patterns.
