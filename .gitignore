@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+.env
+.DS_Store
+
+.agents/
+.codex/
+.local/
+AGENTS.md
+
+# Local coursework brief
+docs/kursova_DPZSP.pdf

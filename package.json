@@ -1,0 +1,14 @@
+{
+  "name": "hr-management-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Incremental HR Management System coursework project",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/app/server.js",
+    "test": "node --test"
+  }
+}
