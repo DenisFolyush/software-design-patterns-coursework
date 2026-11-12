@@ -12,6 +12,10 @@ function createJsonRequest(body) {
   };
 }
 
+function createGetRequest(url) {
+  return { method: 'GET', url };
+}
+
 async function invokeHandler(handler, request) {
   const response = {
     headers: {},
@@ -67,4 +71,45 @@ test('POST /api/v1/employees rejects an email already assigned to an employee', 
 
   assert.equal(response.statusCode, 409);
   assert.deepEqual(JSON.parse(response.body), { error: 'email is already in use' });
+});
+
+test('GET /api/v1/employees lists created employees', async () => {
+  const handler = createAppHandler();
+  await invokeHandler(handler, createJsonRequest(validEmployee));
+  await invokeHandler(
+    handler,
+    createJsonRequest({ ...validEmployee, fullName: 'Ihor Shevchenko', email: 'ihor@example.com' })
+  );
+
+  const response = await invokeHandler(handler, createGetRequest('/api/v1/employees'));
+  const employees = JSON.parse(response.body);
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(employees.length, 2);
+  assert.equal(employees[0].email, validEmployee.email);
+  assert.equal(employees[1].email, 'ihor@example.com');
+});
+
+test('GET /api/v1/employees/:id returns an employee by identifier', async () => {
+  const handler = createAppHandler();
+  const createResponse = await invokeHandler(handler, createJsonRequest(validEmployee));
+  const createdEmployee = JSON.parse(createResponse.body);
+
+  const response = await invokeHandler(
+    handler,
+    createGetRequest(`/api/v1/employees/${createdEmployee.id}`)
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(JSON.parse(response.body), createdEmployee);
+});
+
+test('GET /api/v1/employees/:id returns 404 for an unknown employee', async () => {
+  const response = await invokeHandler(
+    createAppHandler(),
+    createGetRequest('/api/v1/employees/missing-employee')
+  );
+
+  assert.equal(response.statusCode, 404);
+  assert.deepEqual(JSON.parse(response.body), { error: 'employee not found' });
 });
