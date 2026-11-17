@@ -1,7 +1,10 @@
 import { createServer } from 'node:http';
 import { CreateEmployeeService } from '../employees/application/create-employee-service.js';
+import { GetEmployeeService } from '../employees/application/get-employee-service.js';
+import { ListEmployeesService } from '../employees/application/list-employees-service.js';
 import {
   DuplicateEmployeeEmailError,
+  EmployeeNotFoundError,
   EmployeeValidationError
 } from '../employees/domain/employee-errors.js';
 import { InMemoryEmployeeRepository } from '../employees/infrastructure/in-memory-employee-repository.js';
@@ -33,7 +36,9 @@ function createDependencies() {
   const employeeRepository = new InMemoryEmployeeRepository();
 
   return {
-    createEmployeeService: new CreateEmployeeService(employeeRepository)
+    createEmployeeService: new CreateEmployeeService(employeeRepository),
+    getEmployeeService: new GetEmployeeService(employeeRepository),
+    listEmployeesService: new ListEmployeesService(employeeRepository)
   };
 }
 
@@ -57,6 +62,28 @@ export function createAppHandler(dependencies = createDependencies()) {
 
         if (error instanceof DuplicateEmployeeEmailError) {
           sendJson(response, 409, { error: error.message });
+          return;
+        }
+
+        throw error;
+      }
+
+      return;
+    }
+
+    if (request.method === 'GET' && request.url === '/api/v1/employees') {
+      sendJson(response, 200, await dependencies.listEmployeesService.execute());
+      return;
+    }
+
+    const employeeId = request.url?.match(/^\/api\/v1\/employees\/([^/]+)$/)?.[1];
+
+    if (request.method === 'GET' && employeeId) {
+      try {
+        sendJson(response, 200, await dependencies.getEmployeeService.execute(employeeId));
+      } catch (error) {
+        if (error instanceof EmployeeNotFoundError) {
+          sendJson(response, 404, { error: error.message });
           return;
         }
 
